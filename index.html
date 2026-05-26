@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>墨韵排版器 · 多稿本合并专业版</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #2c7da0;
+    --primary-dark: #1f5e7a;
+    --bg-page: #eef2f8;
+    --card-bg: #ffffff;
+    --border-light: #e2eaf1;
+    --text-dark: #1e2f3c;
+    --accent-gold: #e9b741;
+}
+
+body {
+    background: var(--bg-page);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+    padding: 28px 20px 48px;
+    color: var(--text-dark);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 头部 */
+.hero {
+    background: linear-gradient(135deg, #1c3f4c, #0e4a62);
+    border-radius: 2rem;
+    padding: 2rem 2rem;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.hero h1 {
+    font-size: 1.9rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero .sub {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin-top: 12px;
+    border-left: 4px solid var(--accent-gold);
+    padding-left: 18px;
+}
+
+/* 通用卡片 */
+.card {
+    background: var(--card-bg);
+    border-radius: 2rem;
+    padding: 1.8rem;
+    margin-bottom: 1.8rem;
+    box-shadow: 0 10px 25px -8px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255,255,255,0.5);
+    transition: all 0.2s;
+}
+
+/* 双栏布局 */
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+@media (min-width: 880px) {
+    .row {
+        flex-direction: row;
+    }
+    .col {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #2c4b66;
+}
+
+textarea {
+    width: 100%;
+    height: 360px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    border-radius: 1.5rem;
+    border: 1.5px solid var(--border-light);
+    background: #fefef9;
+    resize: vertical;
+    transition: 0.2s;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+}
+
+.preview-box {
+    background: #fffcf5;
+    border-radius: 1.5rem;
+    border: 1px solid var(--border-light);
+    padding: 24px 28px;
+    min-height: 360px;
+    max-height: 520px;
+    overflow-y: auto;
+    font-family: 'Times New Roman', 'SimSun', '宋体', serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #1e2a36;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.preview-box p {
+    margin: 0 0 0.6em 0;
+    text-indent: 2em;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0 8px;
+}
+
+button {
+    border: none;
+    border-radius: 60px;
+    padding: 8px 24px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+button.primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+}
+
+button.primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+button.secondary {
+    background: #eff4fa;
+    color: #1f5e7a;
+    border: 1px solid #d4e0ea;
+}
+
+button.secondary:hover {
+    background: #e4ecf5;
+    transform: translateY(-1px);
+}
+
+/* 草稿箱区 */
+.draft-section {
+    margin-top: 0.8rem;
+    border-top: 2px solid #eef2f8;
+    padding-top: 1.4rem;
+}
+
+.draft-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.draft-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    min-height: 70px;
+}
+
+.draft-item {
+    background: #f8fafd;
+    border-radius: 60px;
+    padding: 5px 12px 5px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #dce5ed;
+    cursor: grab;
+    transition: all 0.1s;
+    user-select: none;
+    backdrop-filter: blur(2px);
+}
+
+.draft-item:active {
+    cursor: grabbing;
+}
+
+.draft-item input {
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    width: 160px;
+    font-size: 0.85rem;
+    padding: 6px 0;
+    font-family: inherit;
+    color: #1c3f4c;
+}
+
+.draft-item input:focus {
+    outline: none;
+    border-bottom: 1px dashed var(--primary);
+}
+
+.delete-draft {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #9aaebf;
+    padding: 0 4px;
+    border-radius: 30px;
+    transition: 0.1s;
+    box-shadow: none;
+}
+
+.delete-draft:hover {
+    color: #dc4c4c;
+    transform: scale(1.1);
+    background: none;
+}
+
+.stats {
+    font-size: 0.75rem;
+    color: #6a829b;
+    margin-top: 10px;
+}
+
+.info-note {
+    background: #fef6e6;
+    border-radius: 1.2rem;
+    padding: 10px 18px;
+    font-size: 0.7rem;
+    color: #b76018;
+    margin-top: 16px;
+}
+
+footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #8aa2b5;
+    margin-top: 2rem;
+}
+
+/* 打印样式优化 - 只输出正文内容 */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+        margin: 0;
+    }
+    .hero, .toolbar, .draft-section, footer, .info-note, button, .card > .toolbar, #uploadBtn, #saveDraftBtn, #clearEditorBtn, #printBtn, #exportWordBtn, #mergeAllBtn, .custom-modal {
+        display: none !important;
+    }
+    .container {
+        padding: 0;
+        margin: 0;
+    }
+    .preview-box {
+        box-shadow: none;
+        border: none;
+        padding: 0.8cm;
+        max-height: none;
+        overflow: visible;
+    }
+    .card {
+        padding: 0;
+        margin: 0;
+        background: white;
+        box-shadow: none;
+    }
+    .preview-box p {
+        text-indent: 2em;
+    }
+}
+
+/* 自定义模态框 (居中) */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.modal-card {
+    background: white;
+    max-width: 340px;
+    width: 80%;
+    border-radius: 2rem;
+    padding: 1.8rem 1.5rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 25px 40px rgba(0,0,0,0.2);
+    animation: fadeInUp 0.2s ease;
+}
+.modal-card p {
+    font-size: 1rem;
+    margin: 0.5rem 0 1.8rem;
+    color: #1e2f3c;
+    line-height: 1.4;
+}
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+.modal-buttons button {
+    padding: 8px 24px;
+    border-radius: 60px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+.modal-buttons .modal-confirm {
+    background: #dc4c4c;
+    color: white;
+}
+.modal-buttons .modal-cancel {
+    background: #eef2f8;
+    color: #2c4b66;
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="hero">
+    <h1>📖 墨韵排版器 · 多稿本合并</h1>
+    <div class="sub">智能清洗 · 即时预览 · 拖拽排序 · 自动取首行命名 · 优雅确认框 · 公文级导出</div>
+</div>
+
+<div class="card">
+<div class="row">
+    <!-- 左侧编辑区 -->
+    <div class="col">
+        <label>📝 原本文稿 (支持TXT/HTML)</label>
+        <textarea id="srcEditor" placeholder="粘贴或输入文字..."></textarea>
+        <div class="stats" id="statPanel"></div>
+        <div class="toolbar">
+            <button class="secondary" id="uploadBtn">📂 上传文件</button>
+            <input type="file" id="fileUploader" accept=".txt,.html,.htm" style="display:none">
+            <button class="secondary" id="saveDraftBtn">💾 存为草稿</button>
+            <button class="secondary" id="clearEditorBtn">🗑️ 清空</button>
+            <button class="primary" id="printBtn">🖨️ 打印 / PDF</button>
+        </div>
+    </div>
+
+    <!-- 右侧预览区 -->
+    <div class="col">
+        <label>✨ 实时预览 (公文排版)</label>
+        <div class="preview-box" id="livePreview"></div>
+        <div class="toolbar" style="justify-content:flex-end">
+            <button class="primary" id="exportWordBtn">📎 导出当前文档</button>
+            <button class="primary" id="mergeAllBtn">📚 合并导出全部草稿</button>
+        </div>
+    </div>
+</div>
+
+<!-- 草稿箱管理区 -->
+<div class="draft-section">
+    <div class="draft-header">
+        <label>📌 稿本箱 · 拖拽可排序 · 点击载入编辑 · 双击名称可重命名</label>
+        <button class="secondary" id="clearAllDrafts" style="padding:4px 16px; font-size:0.75rem;">🗑️ 清空所有草稿</button>
+    </div>
+    <div class="draft-list" id="draftContainer"></div>
+    <div class="info-note">
+        💡 提示：点击草稿载入编辑器；拖拽改变顺序；存草稿时自动取正文第一行作为标题（无干扰）；删除草稿时弹出居中确认框。
+    </div>
+</div>
+</div>
+
+<footer>⚡ 本地存储 · 智能清洗 · 草稿自动以首行命名 · 导出兼容 MS Word / WPS</footer>
+</div>
+
+<script>
+// ========================= 存储与核心数据 =========================
+const STORAGE_KEY = "moyun_drafts_enhanced_v2";
+let drafts = [];
+
+// DOM 元素
+const editor = document.getElementById("srcEditor");
+const previewDiv = document.getElementById("livePreview");
+const statsSpan = document.getElementById("statPanel");
+const draftContainer = document.getElementById("draftContainer");
+
+// ========== 辅助函数: HTML转义 ==========
+function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(emoji) {
+        return emoji;
+    });
+}
+
+// 清洗原始文本：去除html标签，br转换行，去除空白行过度
+function cleanRawText(raw) {
+    if (!raw) return "";
+    let txt = raw
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&");
+    let lines = txt.split(/\r?\n/);
+    let resultLines = [];
+    for (let line of lines) {
+        let trimmed = line.trim();
+        if (trimmed !== "") {
+            resultLines.push(trimmed);
+        }
+    }
+    return resultLines.join("\n");
+}
+
+// 排版：将清洗后的文本转换成带缩进的p段落
+function formatToParagraphs(rawText) {
+    let cleaned = cleanRawText(rawText);
+    if (!cleaned) return '<p style="text-indent:2em; margin:0 0 0.5em;">（暂无内容）</p>';
+    let paragraphs = cleaned.split("\n");
+    let html = "";
+    for (let p of paragraphs) {
+        let escapedP = escapeHtml(p);
+        html += `<p style="text-indent:2em; margin:0 0 0.6em;">${escapedP}</p>`;
+    }
+    return html;
+}
+
+// 渲染右侧预览 + 统计
+function updatePreviewAndStats() {
+    let rawVal = editor.value;
+    let formattedHtml = formatToParagraphs(rawVal);
+    previewDiv.innerHTML = formattedHtml;
+    let cleaned = cleanRawText(rawVal);
+    let wordCount = rawVal.length;
+    let paraCount = cleaned ? cleaned.split("\n").length : 0;
+    statsSpan.innerText = `📊 字符数：${wordCount}  ｜ 段落数：${paraCount}`;
+}
+
+editor.addEventListener("input", () => {
+    updatePreviewAndStats();
+});
+
+// ========== 自定义居中确认框 (Promise风格) ==========
+function customConfirm(message) {
+    return new Promise((resolve) => {
+        // 移除已有的模态框
+        const existingModal = document.querySelector('.custom-modal');
+        if (existingModal) existingModal.remove();
+        
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'custom-modal';
+        modalDiv.innerHTML = `
+            <div class="modal-card">
+                <p>${escapeHtml(message)}</p>
+                <div class="modal-buttons">
+                    <button class="modal-cancel">取消</button>
+                    <button class="modal-confirm">确认删除</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        
+        const confirmBtn = modalDiv.querySelector('.modal-confirm');
+        const cancelBtn = modalDiv.querySelector('.modal-cancel');
+        
+        const cleanup = (result) => {
+            modalDiv.remove();
+            resolve(result);
+        };
+        
+        confirmBtn.onclick = () => cleanup(true);
+        cancelBtn.onclick = () => cleanup(false);
+        // 点击背景关闭
+        modalDiv.addEventListener('click', (e) => {
+            if (e.target === modalDiv) cleanup(false);
+        });
+    });
+}
+
+// ========== 草稿箱渲染 (支持拖拽排序 + 删除 + 重命名) ==========
+function saveDraftsToLocal() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
+}
+
+function renderDraftList() {
+    if (!draftContainer) return;
+    draftContainer.innerHTML = "";
+    if (drafts.length === 0) {
+        draftContainer.innerHTML = '<div style="padding:12px 16px; background:#fafcfd; border-radius:40px; font-size:0.8rem; color:#88a0b5;">✨ 暂无草稿，点击「存为草稿」添加</div>';
+        return;
+    }
+    drafts.forEach((draft, idx) => {
+        const draftItem = document.createElement("div");
+        draftItem.className = "draft-item";
+        draftItem.setAttribute("draggable", "true");
+        draftItem.setAttribute("data-index", idx);
+        // 输入框 (支持重命名)
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.value = draft.name;
+        nameInput.addEventListener("change", (e) => {
+            let newName = e.target.value.trim();
+            if (newName === "") newName = "未命名";
+            drafts[idx].name = newName;
+            saveDraftsToLocal();
+            e.target.value = newName;
+        });
+        // 删除按钮
+        const delBtn = document.createElement("button");
+        delBtn.innerHTML = "✕";
+        delBtn.className = "delete-draft";
+        delBtn.title = "删除草稿";
+        delBtn.addEventListener("click", async (e) => {
+            e.stopPropagation();
+            const confirmed = await customConfirm(`确定要永久删除草稿「${drafts[idx].name}」吗？`);
+            if (confirmed) {
+                drafts.splice(idx, 1);
+                saveDraftsToLocal();
+                renderDraftList();
+                if (drafts.length === 0 && editor.value === "") updatePreviewAndStats();
+            }
+        });
+        // 点击草稿项目载入编辑器
+        draftItem.addEventListener("click", (e) => {
+            if (e.target === delBtn || e.target.tagName === "INPUT") return;
+            editor.value = draft.content;
+            updatePreviewAndStats();
+        });
+        draftItem.appendChild(nameInput);
+        draftItem.appendChild(delBtn);
+        draftContainer.appendChild(draftItem);
+    });
+    attachDragEvents();
+}
+
+// 拖拽排序逻辑
+let dragSrcIndex = null;
+function attachDragEvents() {
+    const items = document.querySelectorAll(".draft-item");
+    items.forEach(item => {
+        item.removeEventListener("dragstart", dragStartHandler);
+        item.removeEventListener("dragover", dragOverHandler);
+        item.removeEventListener("drop", dropHandler);
+        item.removeEventListener("dragend", dragEndHandler);
+        
+        item.addEventListener("dragstart", dragStartHandler);
+        item.addEventListener("dragover", dragOverHandler);
+        item.addEventListener("drop", dropHandler);
+        item.addEventListener("dragend", dragEndHandler);
+    });
+}
+
+function dragStartHandler(e) {
+    const target = e.target.closest(".draft-item");
+    if (!target) return;
+    dragSrcIndex = parseInt(target.getAttribute("data-index"));
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", dragSrcIndex);
+    target.style.opacity = "0.5";
+}
+
+function dragOverHandler(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+}
+
+function dropHandler(e) {
+    e.preventDefault();
+    const targetItem = e.target.closest(".draft-item");
+    if (!targetItem) return;
+    const destIndex = parseInt(targetItem.getAttribute("data-index"));
+    if (dragSrcIndex === null || dragSrcIndex === destIndex) return;
+    if (dragSrcIndex >= 0 && destIndex >= 0 && dragSrcIndex < drafts.length && destIndex < drafts.length) {
+        const [moved] = drafts.splice(dragSrcIndex, 1);
+        drafts.splice(destIndex, 0, moved);
+        saveDraftsToLocal();
+        renderDraftList();
+    }
+    dragSrcIndex = null;
+}
+
+function dragEndHandler(e) {
+    const item = e.target.closest(".draft-item");
+    if (item) item.style.opacity = "";
+    dragSrcIndex = null;
+}
+
+// ========== 从正文提取第一行作为名称 (清洗后、去除空行) ==========
+function getFirstLineAsName(content) {
+    if (!content || !content.trim()) return null;
+    // 先清洗html标签和空白，获得纯文本行
+    let cleaned = cleanRawText(content);
+    if (!cleaned) return null;
+    let lines = cleaned.split("\n");
+    let firstLine = "";
+    for (let line of lines) {
+        let trimmed = line.trim();
+        if (trimmed.length > 0) {
+            firstLine = trimmed;
+            break;
+        }
+    }
+    if (!firstLine) return null;
+    // 限制长度，避免过长名称（最多30个字符）
+    let maxLen = 32;
+    if (firstLine.length > maxLen) {
+        firstLine = firstLine.substring(0, maxLen) + "…";
+    }
+    // 移除可能导致文件名异常的字符（但只是草稿展示，无大碍，不过干净一点）
+    firstLine = firstLine.replace(/[\/\\:*?"<>|]/g, "");
+    return firstLine;
+}
+
+// 添加草稿 (自动从内容第一行生成名称, 无弹窗)
+function addDraftAuto(content) {
+    if (!content.trim()) {
+        alert("编辑区为空，无法保存草稿");
+        return false;
+    }
+    let baseName = getFirstLineAsName(content);
+    if (!baseName) {
+        // 如果无法提取第一行（比如只有图片或特殊内容），用时间戳后备
+        const now = new Date();
+        baseName = `草稿 ${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
+    }
+    // 避免重名: 如果存在相同名称，自动添加序号 (比如 "报告(2)")
+    let finalName = baseName;
+    let counter = 1;
+    while (drafts.some(d => d.name === finalName)) {
+        counter++;
+        finalName = `${baseName}(${counter})`;
+    }
+    drafts.push({
+        name: finalName,
+        content: content
+    });
+    saveDraftsToLocal();
+    renderDraftList();
+    return true;
+}
+
+// 保存当前编辑器内容为草稿 (无弹窗，静默)
+function saveCurrentAsDraftSilent() {
+    let content = editor.value;
+    if (!content.trim()) {
+        alert("编辑区为空，无法保存草稿");
+        return;
+    }
+    addDraftAuto(content);
+}
+
+// 清空所有草稿 (使用自定义确认框)
+async function clearAllDrafts() {
+    if (drafts.length === 0) return;
+    const confirmed = await customConfirm("⚠️ 将永久删除所有草稿，不可恢复，确定清空吗？");
+    if (confirmed) {
+        drafts = [];
+        saveDraftsToLocal();
+        renderDraftList();
+        updatePreviewAndStats();
+    }
+}
+
+// ========== 导出 WORD (健壮版) ==========
+function buildFullWordHtml(bodyHtml, title = "墨韵文档") {
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${escapeHtml(title)}</title>
+<style>
+    @page {
+        size: A4;
+        margin: 2.54cm 2.8cm;
+    }
+    body {
+        font-family: 'Times New Roman', SimSun, '宋体', '微软雅黑', serif;
+        font-size: 16px;
+        line-height: 1.65;
+        color: #1e2a36;
+        background: white;
+        margin: 0;
+        padding: 0;
+    }
+    .doc-content {
+        max-width: 100%;
+    }
+    p {
+        margin: 0 0 0.5em 0;
+        text-indent: 2em;
+    }
+    h1, h2, h3 {
+        margin-top: 1em;
+        margin-bottom: 0.5em;
+        font-weight: 500;
+    }
+    .merge-title {
+        font-size: 1.6rem;
+        margin: 1.2rem 0 0.5rem;
+        font-weight: 600;
+        border-left: 5px solid #2c7da0;
+        padding-left: 1rem;
+    }
+    .page-break {
+        page-break-before: always;
+    }
+</style>
+</head>
+<body>
+<div class="doc-content">
+${bodyHtml}
+</div>
+</body>
+</html>`;
+}
+
+function downloadWord(htmlContent, fileName) {
+    if (!htmlContent || htmlContent.trim() === "") {
+        alert("没有可导出的内容！");
+        return false;
+    }
+    const fullHtml = buildFullWordHtml(htmlContent, fileName);
+    const blob = new Blob([fullHtml], { type: "application/msword;charset=utf-8" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = fileName.endsWith(".doc") ? fileName : `${fileName}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return true;
+}
+
+// 导出当前编辑器内容 (Word)
+function exportCurrentDoc() {
+    let contentRaw = editor.value;
+    let formattedBody = formatToParagraphs(contentRaw);
+    if (!contentRaw.trim()) {
+        alert("当前编辑器为空，无法导出");
+        return;
+    }
+    downloadWord(formattedBody, "墨韵排版_当前文档");
+}
+
+// 合并导出所有草稿
+function mergeAndExport() {
+    if (!drafts.length) {
+        alert("草稿箱为空，请先保存至少一篇草稿。");
+        return;
+    }
+    let mergedHtml = "";
+    drafts.forEach((draft, idx) => {
+        let draftTitle = escapeHtml(draft.name);
+        let draftContentHtml = formatToParagraphs(draft.content);
+        if (idx !== 0) {
+            mergedHtml += `<div class="page-break"></div>`;
+        }
+        mergedHtml += `<h3 class="merge-title" style="margin-top: 0.8rem;">📄 ${draftTitle}</h3>`;
+        mergedHtml += draftContentHtml;
+        mergedHtml += `<div style="border-bottom: 1px solid #ddd; margin: 1rem 0;"></div>`;
+    });
+    if (!mergedHtml) {
+        alert("合并内容为空");
+        return;
+    }
+    let timestamp = new Date().toISOString().slice(0,19).replace(/:/g, '-');
+    downloadWord(mergedHtml, `合并文稿_${drafts.length}篇_${timestamp}`);
+}
+
+// ========== 文件上传 ==========
+document.getElementById("uploadBtn").addEventListener("click", () => {
+    document.getElementById("fileUploader").click();
+});
+document.getElementById("fileUploader").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        let content = ev.target.result;
+        editor.value = content;
+        updatePreviewAndStats();
+    };
+    reader.onerror = () => alert("文件读取失败");
+    reader.readAsText(file, "UTF-8");
+});
+
+// 清空编辑器
+document.getElementById("clearEditorBtn").addEventListener("click", () => {
+    if (editor.value.trim() !== "" && confirm("清空编辑器内容？")) {
+        editor.value = "";
+        updatePreviewAndStats();
+    } else if (editor.value.trim() === "") {
+        editor.value = "";
+        updatePreviewAndStats();
+    }
+});
+
+// 打印
+document.getElementById("printBtn").addEventListener("click", () => {
+    window.print();
+});
+
+// 导出当前文档 + 合并导出
+document.getElementById("exportWordBtn").addEventListener("click", exportCurrentDoc);
+document.getElementById("mergeAllBtn").addEventListener("click", mergeAndExport);
+
+// 草稿操作：保存为草稿（无提示直接存，自动以正文第一行命名）
+document.getElementById("saveDraftBtn").addEventListener("click", saveCurrentAsDraftSilent);
+document.getElementById("clearAllDrafts").addEventListener("click", clearAllDrafts);
+
+// 初始化加载本地草稿，并提供示例草稿
+function loadDraftsFromStorage() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        try {
+            drafts = JSON.parse(stored);
+            if (!Array.isArray(drafts)) drafts = [];
+        } catch(e) { drafts = []; }
+    } 
+    if (!drafts.length) {
+        // 示例草稿（展示自动命名功能）
+        drafts = [
+            { name: "范例 · 会议纪要", content: "会议主题：年度规划\n参会人员：各部门负责人\n决议事项：第一季度重点推进数字化办公。" },
+            { name: "报告草案", content: "项目背景：市场分析报告\n核心建议：优化流程，降低成本。" }
+        ];
+        saveDraftsToLocal();
+    }
+    renderDraftList();
+}
+
+// 设置初始编辑器内容(友好示例)
+function setInitEditorExample() {
+    if (!editor.value) {
+        editor.value = `各有关单位、部门：
+
+为进一步规范公文格式，提升文档处理效率，特制定本排版标准。
+
+一、正文采用仿宋或宋体，首行缩进两字符。
+二、标题层级分明，一级标题使用黑体。
+三、所有文档需经过清洗冗余标签，保持简洁。
+
+以上规范自发布之日起执行。`;
+        updatePreviewAndStats();
+    } else {
+        updatePreviewAndStats();
+    }
+}
+
+loadDraftsFromStorage();
+setInitEditorExample();
+</script>
+</body>
+</html>
